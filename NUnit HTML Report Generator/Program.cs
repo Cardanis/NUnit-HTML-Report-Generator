@@ -277,9 +277,26 @@ namespace Jatech.NUnit
                         break;
                 }
 
+                int passedTests = 0;
+                int totalTests = 0;
+
+                // Loop through test cases in the fixture
+                foreach (var testCase in fixture.Descendants("test-case"))
+                {
+                    // Get test case properties
+                    totalTests++;
+                    string result = testCase.Attribute("result").Value;
+                    if (result.ToLower().Equals("success"))
+                    {
+                        passedTests++;
+                    }
+
+                }
+
                 html.Append("\">");
                 html.AppendLine("<div class=\"panel-heading\">");
-                html.AppendLine(string.Format("{0} - <small>{1}</small><small class=\"pull-right\">{2}</small>", fixtureName, fixtureNamespace, fixtureTime));
+                html.AppendLine(string.Format("{0} - <small>{1} - {2}/{3}</small><small class=\"pull-right\">{4}</small>", 
+                    fixtureName, fixtureNamespace, passedTests, totalTests, fixtureTime));
 
                 // If the fixture has a reason, display an icon 
                 // on the top of the panel with a tooltip containing 
@@ -487,7 +504,7 @@ namespace Jatech.NUnit
                 name = name.Substring(name.LastIndexOf('.') + 1, name.Length - name.LastIndexOf('.') - 1);
 
                 html.AppendLine("<div class=\"panel ");
-
+                
                 switch (result.ToLower())
                 {
                     case "success":
@@ -515,6 +532,17 @@ namespace Jatech.NUnit
                 html.AppendLine(string.Format("<div id=\"{0}-accordion-{1}\" class=\"panel-collapse collapse\">", modalId, i++));
                 html.AppendLine("<div class=\"panel-body\">");
                 html.AppendLine(string.Format("<div><strong>Result:</strong> {0}</div>", result));
+
+                foreach(var propertiesCollection in testCase.Descendants("properties"))
+                {
+                    html.AppendLine("<div><strong>Properties:</strong></div>");
+                    foreach(var property in propertiesCollection.Descendants("property"))
+                    {
+                        string propName = property.Attribute("name").Value;
+                        string propValue = property.Attribute("value").Value;
+                        html.AppendLine(string.Format("<div><strong>{0}:</strong> {1}</div>", propName, propValue));
+                    }
+                }
 
                 // Add failure messages if available
                 if (testCase.Elements("failure").Count() == 1)
